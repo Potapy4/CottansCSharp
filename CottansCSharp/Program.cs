@@ -57,15 +57,15 @@ namespace CottansCSharp
             // Алгоритм: Указываем диапазон (начало, ДО какой позиции проверить) и проверяем (если наше значение и длина номера карты подходит под условие, то назначаем вендор)
             if (Enumerable.Range(34, 4).Contains(tmp) && number.Length == 15)
                 vendor = "American Express";
-            else if (Enumerable.Range(50, 0).Contains(tmp) || Enumerable.Range(56, 14).Contains(tmp) && number.Length >= 12 && number.Length <= 19)
+            else if (Enumerable.Range(50, 1).Contains(tmp) || Enumerable.Range(56, 14).Contains(tmp) && number.Length >= 12 && number.Length <= 19)
                 vendor = "Maestro";
             else if (Enumerable.Range(51, 5).Contains(tmp) && number.Length >= 16 && number.Length <= 19)
                 vendor = "Master Card";
-            else if (tmp / 10 == 4 && number.Length >= 13 && number.Length <= 16) // Для VISA
+            else if (tmp / 10 == 4 && number.Length >= 13) // Для VISA
                 vendor = "VISA";
-            else if (tmp == 35 && number.Length == 16) // Если начинается на 35 и длина 16, то возможно это JCB, дальше чекнем
+            else if (tmp == 35 && number.Length >= 16) // Если начинается на 35 и длина от 16, то возможно это JCB, дальше чекнем
             {
-                tmp = first4digit[0] * 1000 + first4digit[1] * 100 + first4digit[2] * 10 + first4digit[3];
+                tmp = cardNumber[0] * 1000 + cardNumber[1] * 100 + cardNumber[2] * 10 + cardNumber[3];
                 if (tmp >= 3528 && tmp <= 3589)
                     vendor = "JCB";
             }
@@ -92,43 +92,25 @@ namespace CottansCSharp
 
         static string GenerateNextCreditCardNumber(string number)
         {
-            RemoveDashes(ref number);
+            RemoveDashes(ref number);            
+            long nextCC = Int64.Parse(number);
+            nextCC++;
 
-            int pos = 2; // По дефолту префикс всегда 2 цифры
-            int[] cardNumber = new int[number.Length];
-
-            // Тут читаем префикс карты, в двух случаях они разные (либо 1, либо 4 цифры)
-            if (GetCreditCardVendor(number) == "VISA")
-                --pos;
-            else if (GetCreditCardVendor(number) == "JCB")
-                pos += 2;
-
-            for (int i = 0; i < pos; ++i)
-                cardNumber[i] = number[i] - '0';
-
-            // Рандомим
-            while (pos < cardNumber.Length - 1)
-                cardNumber[pos++] = rand.Next(10);
-
-            int sum = LuhnAlgorithm(ref cardNumber);
-
-            // И вычисляем контрольную цифру для карты
-            cardNumber[cardNumber.Length - 1] = (10 - (sum % 10)) % 10;
-
-            return string.Join("", cardNumber);
+            while (!IsCreditCardNumberValid(Convert.ToString(nextCC)))
+                nextCC++;
+            return Convert.ToString(nextCC);
         }
 
         static void Main(string[] args)
         {
-            string s = GetCreditCardVendor("5893188858726104");
+            string s = GetCreditCardVendor("4917610000000000003");
             Console.WriteLine(s);
 
-            Console.WriteLine(IsCreditCardNumberValid("5893188858726104"));
+            Console.WriteLine(IsCreditCardNumberValid("4917610000000000003 "));
 
-            string a = GenerateNextCreditCardNumber("5893188858726108");
+            string a = GenerateNextCreditCardNumber("4917610000000000003    ");
             Console.WriteLine(a);
-
-            Console.WriteLine(IsCreditCardNumberValid(a));
+          
 
         }
     }
