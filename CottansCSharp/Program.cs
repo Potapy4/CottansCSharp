@@ -97,8 +97,8 @@ namespace CottansCSharp
             if (originalVendor != "Unknown")
             {
                 long nextCC = Int64.Parse(number);
-
-                while (!IsCreditCardNumberValid(Convert.ToString(++nextCC)))
+                ++nextCC;
+                while (!IsCreditCardNumberValid(Convert.ToString(nextCC)))
                     nextCC++;
 
                 if (originalVendor == GetCreditCardVendor(Convert.ToString(nextCC)))
