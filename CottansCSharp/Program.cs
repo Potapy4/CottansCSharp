@@ -45,6 +45,7 @@ namespace CottansCSharp
 
         static string GetCreditCardVendor(string number)
         {
+            RemoveDashes(ref number);
             string vendor = "Unknown";
             if (IsCreditCardNumberValid(number))
             {
