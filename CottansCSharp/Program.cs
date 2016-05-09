@@ -64,7 +64,7 @@ namespace CottansCSharp
             if (LuhnAlgorithm(number) % 10 != 0)
                 return vendor;
 
-            if (Enumerable.Range(34, 4).Contains(tmp) && number.Length == 15)
+            if (Enumerable.Range(34, 1).Contains(tmp) || Enumerable.Range(37, 1).Contains(tmp) && number.Length == 15)
                 vendor = "American Express";
             else if (Enumerable.Range(50, 1).Contains(tmp) || Enumerable.Range(56, 14).Contains(tmp) && number.Length >= 12 && number.Length <= 19)
                 vendor = "Maestro";
@@ -102,13 +102,25 @@ namespace CottansCSharp
         {
             RemoveDashes(ref number);
             string originalVendor = GetCreditCardVendor(number);
-            string newVendor = "No more CC numbers available for this vendor or invalid CC number";
+            string newVendor = "No more CC numbers available for this vendor or invalid CC number";          
+
             if (originalVendor != "Unknown")
             {
+                int numPrefix = (originalVendor == "VISA") ? 1 : (originalVendor == "JCB") ? 4 : 2;
+                string originalPrefix = number.Substring(0, numPrefix);                
+
                 long nextCC = Int64.Parse(number);
                 ++nextCC;
-                while (!IsCreditCardNumberValid(Convert.ToString(nextCC)))
+
+                string tmpDigit = nextCC.ToString();
+                string tmpPrefix = tmpDigit.Substring(0,numPrefix);
+
+                while (!IsCreditCardNumberValid(tmpDigit) && originalPrefix == tmpPrefix)
+                {
                     nextCC++;
+                    tmpDigit = nextCC.ToString();
+                    tmpPrefix = tmpDigit.Substring(0, numPrefix);
+                }
 
                 if (originalVendor == GetCreditCardVendor(Convert.ToString(nextCC)))
                     newVendor = Convert.ToString(nextCC);
@@ -119,17 +131,17 @@ namespace CottansCSharp
 
         static void Main(string[] args)
         {
-            string str = "35301113333000001";
+            string str = "349999999999991";
 
             string s = GetCreditCardVendor(str);
             Console.WriteLine(s);
 
             Console.WriteLine(IsCreditCardNumberValid(str));
 
-            string a = GenerateNextCreditCardNumber(str);
-            Console.WriteLine(a);
+            s = GenerateNextCreditCardNumber(str);
+            Console.WriteLine(s);
 
-            Console.WriteLine(GetCreditCardVendor(a));
+            Console.WriteLine(GetCreditCardVendor(s));
 
         }
     }
