@@ -47,6 +47,29 @@ namespace CottansCSharp
             return sum;
         }
 
+        static bool GetContainPrefix(ref string number)
+        {
+            bool result = false;
+            int tmp = Convert.ToInt32(number.Substring(0, 2));
+
+            if (Enumerable.Range(34, 1).Contains(tmp) || Enumerable.Range(37, 1).Contains(tmp))
+                result = true;
+            else if (Enumerable.Range(50, 1).Contains(tmp) || Enumerable.Range(56, 14).Contains(tmp))
+                result = true;
+            else if (Enumerable.Range(51, 5).Contains(tmp))
+                result = true;
+            else if (tmp / 10 == 4)
+                result = true;
+            else if (tmp == 35)
+            {
+                tmp = Convert.ToInt32(number.Substring(0, 4));
+                if (tmp >= 3528 && tmp <= 3589)
+                    result = true;
+            }
+
+            return result;
+        }
+
         static string GetCreditCardVendor(string number)
         {
             RemoveDashes(ref number);
@@ -102,24 +125,19 @@ namespace CottansCSharp
         {
             RemoveDashes(ref number);
             string originalVendor = GetCreditCardVendor(number);
-            string newVendor = "No more CC numbers available for this vendor or invalid CC number";          
+            string newVendor = "No more CC numbers available for this vendor or invalid CC number";
 
             if (originalVendor != "Unknown")
             {
-                int numPrefix = (originalVendor == "VISA") ? 1 : (originalVendor == "JCB") ? 4 : 2;
-                string originalPrefix = number.Substring(0, numPrefix);                
-
                 long nextCC = Int64.Parse(number);
                 ++nextCC;
 
                 string tmpDigit = nextCC.ToString();
-                string tmpPrefix = tmpDigit.Substring(0,numPrefix);
 
-                while (!IsCreditCardNumberValid(tmpDigit) && originalPrefix == tmpPrefix)
+                while (!IsCreditCardNumberValid(tmpDigit) && GetContainPrefix(ref tmpDigit))
                 {
                     nextCC++;
                     tmpDigit = nextCC.ToString();
-                    tmpPrefix = tmpDigit.Substring(0, numPrefix);
                 }
 
                 if (originalVendor == GetCreditCardVendor(Convert.ToString(nextCC)))
@@ -131,7 +149,7 @@ namespace CottansCSharp
 
         static void Main(string[] args)
         {
-            string str = "349999999999991";
+            string str = "5199999999999991";
 
             string s = GetCreditCardVendor(str);
             Console.WriteLine(s);
