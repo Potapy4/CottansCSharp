@@ -25,9 +25,13 @@ namespace CottansCSharp
             number = number.Replace("-", "");
         }
 
-        static int LuhnAlgorithm(ref int[] cardNumber)
+        static int LuhnAlgorithm(string number)
         {
             int sum = 0;
+            int[] cardNumber = new int[number.Length];
+            for (int i = 0; i < cardNumber.Length; ++i)
+                cardNumber[i] = number[i] - '0';
+
             for (int i = cardNumber.Length - 1, j = 0, k = cardNumber.Length % 2; i >= 0; i--)
             {
                 if (i % 2 == k)
@@ -47,31 +51,34 @@ namespace CottansCSharp
         {
             RemoveDashes(ref number);
             string vendor = "Unknown";
-            if (IsCreditCardNumberValid(number))
+
+            string first4digit = number.Substring(0, 4);
+            int[] cardNumber = new int[first4digit.Length];
+
+            for (int i = 0; i < cardNumber.Length; ++i)
+                cardNumber[i] = number[i] - '0';
+
+            int tmp = cardNumber[0] * 10 + cardNumber[1]; // Получаем первые 2 цифры и записываем в переменную
+                                                          // Алгоритм: Указываем диапазон (начало, ДО какой позиции проверить) и проверяем (если наше значение и длина номера карты подходит под условие, то назначаем вендор)
+
+            if (LuhnAlgorithm(number) % 10 != 0)
+                return vendor;
+
+            if (Enumerable.Range(34, 4).Contains(tmp) && number.Length == 15)
+                vendor = "American Express";
+            else if (Enumerable.Range(50, 1).Contains(tmp) || Enumerable.Range(56, 14).Contains(tmp) && number.Length >= 12 && number.Length <= 19)
+                vendor = "Maestro";
+            else if (Enumerable.Range(51, 5).Contains(tmp) && number.Length >= 16 && number.Length <= 19)
+                vendor = "Master Card";
+            else if (tmp / 10 == 4 && number.Length >= 13) // Для VISA
+                vendor = "VISA";
+            else if (tmp == 35 && number.Length == 16) // Если начинается на 35 и длина 16, то возможно это JCB, дальше чекнем
             {
-                string first4digit = number.Substring(0, 4);
-                int[] cardNumber = new int[first4digit.Length];
-
-                for (int i = 0; i < cardNumber.Length; ++i)
-                    cardNumber[i] = number[i] - '0';
-
-                int tmp = cardNumber[0] * 10 + cardNumber[1]; // Получаем первые 2 цифры и записываем в переменную
-                                                              // Алгоритм: Указываем диапазон (начало, ДО какой позиции проверить) и проверяем (если наше значение и длина номера карты подходит под условие, то назначаем вендор)
-                if (Enumerable.Range(34, 4).Contains(tmp) && number.Length == 15)
-                    vendor = "American Express";
-                else if (Enumerable.Range(50, 1).Contains(tmp) || Enumerable.Range(56, 14).Contains(tmp) && number.Length >= 12 && number.Length <= 19)
-                    vendor = "Maestro";
-                else if (Enumerable.Range(51, 5).Contains(tmp) && number.Length >= 16 && number.Length <= 19)
-                    vendor = "Master Card";
-                else if (tmp / 10 == 4 && number.Length >= 13) // Для VISA
-                    vendor = "VISA";
-                else if (tmp == 35 && number.Length >= 16) // Если начинается на 35 и длина от 16, то возможно это JCB, дальше чекнем
-                {
-                    tmp = cardNumber[0] * 1000 + cardNumber[1] * 100 + cardNumber[2] * 10 + cardNumber[3];
-                    if (tmp >= 3528 && tmp <= 3589)
-                        vendor = "JCB";
-                }
+                tmp = cardNumber[0] * 1000 + cardNumber[1] * 100 + cardNumber[2] * 10 + cardNumber[3];
+                if (tmp >= 3528 && tmp <= 3589)
+                    vendor = "JCB";
             }
+
             return vendor;
 
         }
@@ -79,14 +86,16 @@ namespace CottansCSharp
         static bool IsCreditCardNumberValid(string number)
         {
             RemoveDashes(ref number);
-            int[] cardNumber = new int[number.Length];
 
-            for (int i = 0; i < cardNumber.Length; ++i)
-                cardNumber[i] = number[i] - '0';
+            if (GetCreditCardVendor(number) != "Unknown")
+            {
+                int sum = LuhnAlgorithm(number);
 
-            int sum = LuhnAlgorithm(ref cardNumber);
+                return (sum % 10 == 0);
+            }
+            else
+                return false;
 
-            return (sum % 10 == 0);
         }
 
         static string GenerateNextCreditCardNumber(string number)
@@ -110,12 +119,14 @@ namespace CottansCSharp
 
         static void Main(string[] args)
         {
-            string s = GetCreditCardVendor("4999999999999999993");
+            string str = "35301113333000001";
+
+            string s = GetCreditCardVendor(str);
             Console.WriteLine(s);
 
-            Console.WriteLine(IsCreditCardNumberValid("4999999999999999993"));
+            Console.WriteLine(IsCreditCardNumberValid(str));
 
-            string a = GenerateNextCreditCardNumber("4999999999999999993");
+            string a = GenerateNextCreditCardNumber(str);
             Console.WriteLine(a);
 
             Console.WriteLine(GetCreditCardVendor(a));
