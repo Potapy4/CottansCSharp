@@ -8,15 +8,14 @@ namespace CottansCSharp
 {
     class Program
     {
-        const string vendorUnknown = "Unknown";
-
         enum CC
         {
             AmericanExpress,
             JCB,
             Maestro,
             MasterCard,
-            VISA
+            VISA,
+            Unknown
         }
 
         static void RemoveDashes(ref string number)
@@ -73,9 +72,10 @@ namespace CottansCSharp
         static string GetCreditCardVendor(string number)
         {
             RemoveDashes(ref number);
-            string vendor = vendorUnknown;
+            string vendor = CC.Unknown.ToString();
 
-            int first2digit = Convert.ToInt32(number.Substring(0, 2));
+            int first2digit = 0;
+            Int32.TryParse(number.Substring(0, 2), out first2digit);
 
             if (LuhnAlgorithm(number) % 10 != 0)
                 return vendor;
@@ -102,7 +102,7 @@ namespace CottansCSharp
         {
             RemoveDashes(ref number);
 
-            if (GetCreditCardVendor(number) != vendorUnknown)
+            if (GetCreditCardVendor(number) != CC.Unknown.ToString())
             {
                 int sum = LuhnAlgorithm(number);
 
@@ -119,7 +119,7 @@ namespace CottansCSharp
             string originalVendor = GetCreditCardVendor(number);
             string newVendor = "No more CC numbers available for this vendor or invalid CC number";
 
-            if (originalVendor != vendorUnknown)
+            if (originalVendor != CC.Unknown.ToString())
             {
                 long nextCC = Int64.Parse(number);
                 ++nextCC;
@@ -141,7 +141,7 @@ namespace CottansCSharp
 
         static void Main(string[] args)
         {
-            string str = "5199999999999991 ";
+            string str = "5199999999999991";
 
             string s = GetCreditCardVendor(str);
             Console.WriteLine(s);
