@@ -8,16 +8,16 @@ namespace CottansCSharp
 {
     class Program
     {
-        /*
-         Вендор:                  ID:              Длина номера карты:
-         American Express        34, 37                  15
-         Maestro                50, 56-69               12-19
-         MasterCard              51-55                   16
-         VISA                      4                     16
-         JCB                    3528-3589                16
-         */
+        const string vendorUnknown = "Unknown";
 
-        static Random rand = new Random();
+        enum CC
+        {
+            AmericanExpress,
+            JCB,
+            Maestro,
+            MasterCard,
+            VISA
+        }
 
         static void RemoveDashes(ref string number)
         {
@@ -73,44 +73,36 @@ namespace CottansCSharp
         static string GetCreditCardVendor(string number)
         {
             RemoveDashes(ref number);
-            string vendor = "Unknown";
+            string vendor = vendorUnknown;
 
-            string first4digit = number.Substring(0, 4);
-            int[] cardNumber = new int[first4digit.Length];
-
-            for (int i = 0; i < cardNumber.Length; ++i)
-                cardNumber[i] = number[i] - '0';
-
-            int tmp = cardNumber[0] * 10 + cardNumber[1]; // Получаем первые 2 цифры и записываем в переменную
-                                                          // Алгоритм: Указываем диапазон (начало, ДО какой позиции проверить) и проверяем (если наше значение и длина номера карты подходит под условие, то назначаем вендор)
+            int first2digit = Convert.ToInt32(number.Substring(0, 2));
 
             if (LuhnAlgorithm(number) % 10 != 0)
                 return vendor;
 
-            if (Enumerable.Range(34, 1).Contains(tmp) || Enumerable.Range(37, 1).Contains(tmp) && number.Length == 15)
-                vendor = "American Express";
-            else if (Enumerable.Range(50, 1).Contains(tmp) || Enumerable.Range(56, 14).Contains(tmp) && number.Length >= 12 && number.Length <= 19)
-                vendor = "Maestro";
-            else if (Enumerable.Range(51, 5).Contains(tmp) && number.Length >= 16 && number.Length <= 19)
-                vendor = "Master Card";
-            else if (tmp / 10 == 4 && number.Length >= 13) // Для VISA
-                vendor = "VISA";
-            else if (tmp == 35 && number.Length == 16) // Если начинается на 35 и длина 16, то возможно это JCB, дальше чекнем
+            if (Enumerable.Range(34, 1).Contains(first2digit) || Enumerable.Range(37, 1).Contains(first2digit) && number.Length == 15)
+                vendor = CC.AmericanExpress.ToString();
+            else if (Enumerable.Range(50, 1).Contains(first2digit) || Enumerable.Range(56, 14).Contains(first2digit) && number.Length >= 12 && number.Length <= 19)
+                vendor = CC.Maestro.ToString();
+            else if (Enumerable.Range(51, 5).Contains(first2digit) && number.Length >= 16 && number.Length <= first2digit)
+                vendor = CC.MasterCard.ToString();
+            else if (first2digit / 10 == 4 && number.Length >= 13) // Для VISA
+                vendor = CC.VISA.ToString();
+            else if (first2digit == 35 && number.Length == 16) // Если начинается на 35 и длина 16, то возможно это JCB, дальше чекнем
             {
-                tmp = cardNumber[0] * 1000 + cardNumber[1] * 100 + cardNumber[2] * 10 + cardNumber[3];
-                if (tmp >= 3528 && tmp <= 3589)
-                    vendor = "JCB";
+                first2digit = Convert.ToInt32(number.Substring(0, 4));
+                if (first2digit >= 3528 && first2digit <= 3589)
+                    vendor = CC.JCB.ToString();
             }
 
             return vendor;
-
         }
 
         static bool IsCreditCardNumberValid(string number)
         {
             RemoveDashes(ref number);
 
-            if (GetCreditCardVendor(number) != "Unknown")
+            if (GetCreditCardVendor(number) != vendorUnknown)
             {
                 int sum = LuhnAlgorithm(number);
 
@@ -127,7 +119,7 @@ namespace CottansCSharp
             string originalVendor = GetCreditCardVendor(number);
             string newVendor = "No more CC numbers available for this vendor or invalid CC number";
 
-            if (originalVendor != "Unknown")
+            if (originalVendor != vendorUnknown)
             {
                 long nextCC = Int64.Parse(number);
                 ++nextCC;
@@ -149,7 +141,7 @@ namespace CottansCSharp
 
         static void Main(string[] args)
         {
-            string str = "5199999999999991";
+            string str = "5199999999999991 ";
 
             string s = GetCreditCardVendor(str);
             Console.WriteLine(s);
