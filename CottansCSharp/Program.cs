@@ -84,7 +84,7 @@ namespace CottansCSharp
                 vendor = CC.AmericanExpress.ToString();
             else if (Enumerable.Range(50, 1).Contains(first2digit) || Enumerable.Range(56, 14).Contains(first2digit) && number.Length >= 12 && number.Length <= 19)
                 vendor = CC.Maestro.ToString();
-            else if (Enumerable.Range(51, 5).Contains(first2digit) && number.Length >= 16 && number.Length <= first2digit)
+            else if (Enumerable.Range(51, 5).Contains(first2digit) && number.Length == 16)
                 vendor = CC.MasterCard.ToString();
             else if (first2digit / 10 == 4 && number.Length >= 13) // Для VISA
                 vendor = CC.VISA.ToString();
