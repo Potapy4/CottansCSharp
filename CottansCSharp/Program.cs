@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CottansCSharp
 {
@@ -49,20 +46,20 @@ namespace CottansCSharp
         static bool GetContainPrefix(ref string number)
         {
             bool result = false;
-            int tmp = Convert.ToInt32(number.Substring(0, 2));
+            int first2digits = Convert.ToInt32(number.Substring(0, 2));
 
-            if (Enumerable.Range(34, 1).Contains(tmp) || Enumerable.Range(37, 1).Contains(tmp))
+            if (Enumerable.Range(34, 1).Contains(first2digits) || Enumerable.Range(37, 1).Contains(first2digits))
                 result = true;
-            else if (Enumerable.Range(50, 1).Contains(tmp) || Enumerable.Range(56, 14).Contains(tmp))
+            else if (Enumerable.Range(50, 1).Contains(first2digits) || Enumerable.Range(56, 14).Contains(first2digits))
                 result = true;
-            else if (Enumerable.Range(51, 5).Contains(tmp))
+            else if (Enumerable.Range(51, 5).Contains(first2digits))
                 result = true;
-            else if (tmp / 10 == 4)
+            else if (first2digits / 10 == 4)
                 result = true;
-            else if (tmp == 35)
+            else if (first2digits == 35)
             {
-                tmp = Convert.ToInt32(number.Substring(0, 4));
-                if (tmp >= 3528 && tmp <= 3589)
+                first2digits = Convert.ToInt32(number.Substring(0, 4));
+                if (first2digits >= 3528 && first2digits <= 3589)
                     result = true;
             }
 
@@ -103,11 +100,7 @@ namespace CottansCSharp
             RemoveDashes(ref number);
 
             if (GetCreditCardVendor(number) != CC.Unknown.ToString())
-            {
-                int sum = LuhnAlgorithm(number);
-
-                return (sum % 10 == 0);
-            }
+                return (LuhnAlgorithm(number) % 10 == 0);
             else
                 return false;
         }
@@ -120,19 +113,19 @@ namespace CottansCSharp
 
             if (originalVendor != CC.Unknown.ToString())
             {
-                long nextCC = Int64.Parse(number);
+                ulong nextCC = ulong.Parse(number);                
                 ++nextCC;
-
+                
                 string tmpDigit = nextCC.ToString();
 
                 while (!IsCreditCardNumberValid(tmpDigit) && GetContainPrefix(ref tmpDigit))
                 {
-                    nextCC++;
+                    ++nextCC;
                     tmpDigit = nextCC.ToString();
                 }
 
-                if (originalVendor == GetCreditCardVendor(Convert.ToString(nextCC)))
-                    newVendor = Convert.ToString(nextCC);
+                if (originalVendor == GetCreditCardVendor(tmpDigit))
+                    newVendor = tmpDigit;
             }
 
             return newVendor;
@@ -140,7 +133,7 @@ namespace CottansCSharp
 
         static void Main(string[] args)
         {
-            string str = "5199999999999991";
+            string str = "51999999999999910";
 
             string s = GetCreditCardVendor(str);
             Console.WriteLine(s);
