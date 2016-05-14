@@ -80,15 +80,15 @@ namespace CottansCSharp
             if (LuhnAlgorithm(number) % 10 != 0)
                 return vendor;
 
-            if (Enumerable.Range(34, 1).Contains(first2digit) || Enumerable.Range(37, 1).Contains(first2digit) && number.Length == 15)
+            if (number.Length == 15 && Enumerable.Range(34, 1).Contains(first2digit) || Enumerable.Range(37, 1).Contains(first2digit))
                 vendor = CC.AmericanExpress.ToString();
-            else if (Enumerable.Range(50, 1).Contains(first2digit) || Enumerable.Range(56, 14).Contains(first2digit) && number.Length >= 12 && number.Length <= 19)
+            else if (number.Length >= 12 && number.Length <= 19 && Enumerable.Range(50, 1).Contains(first2digit) || Enumerable.Range(56, 14).Contains(first2digit))
                 vendor = CC.Maestro.ToString();
-            else if (Enumerable.Range(51, 5).Contains(first2digit) && number.Length == 16)
+            else if (number.Length == 16 && Enumerable.Range(51, 5).Contains(first2digit))
                 vendor = CC.MasterCard.ToString();
-            else if (first2digit / 10 == 4 && number.Length >= 13) // Для VISA
+            else if (number.Length == 13 || number.Length == 16 || number.Length == 19 && first2digit / 10 == 4)
                 vendor = CC.VISA.ToString();
-            else if (first2digit == 35 && number.Length == 16) // Если начинается на 35 и длина 16, то возможно это JCB, дальше чекнем
+            else if (number.Length == 16 && first2digit == 35)
             {
                 first2digit = Convert.ToInt32(number.Substring(0, 4));
                 if (first2digit >= 3528 && first2digit <= 3589)
@@ -110,7 +110,6 @@ namespace CottansCSharp
             }
             else
                 return false;
-
         }
 
         static string GenerateNextCreditCardNumber(string number)
